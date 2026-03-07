@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#7d2ebe">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AuraScript">
+    <meta name="description" content="Secure digital prescription generation for doctors">
+    <link rel="manifest" href="manifest.json">
+    <title>AuraScript | Digital Prescription</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🩺</span>
+                <h1>AuraScript</h1>
+            </div>
+            <p class="subtitle">Secure and Encrypted | <a href="login.html"
+                    style="color: var(--primary); text-decoration: none; font-weight: 600;">Change Profile</a></p>
+        </header>
+
+        <main class="glass-card">
+            <section class="patient-details">
+                <h3>Patient Information</h3>
+                <div class="input-group">
+                    <input type="text" id="patientName" placeholder="Patient Name" required>
+                    <input type="number" id="patientAge" placeholder="Age" required>
+                    <select id="patientGender">
+                        <option value="">Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </section>
+
+            <section class="medication-details">
+                <h3>Prescription</h3>
+                <div id="medicationList">
+                    <div class="med-item">
+                        <input type="text" class="med-name" placeholder="Medication Name" required autocomplete="on">
+                        <div class="dosage-group">
+                            <input type="number" class="med-dosage" placeholder="Dose" min="0" step="any" required>
+                            <select class="med-unit">
+                                <option value="mg">mg</option>
+                                <option value="ml">ml</option>
+                                <option value="mcg">mcg</option>
+                                <option value="g">g</option>
+                            </select>
+                        </div>
+                        <input type="text" class="med-duration" placeholder="Duration" required>
+                        <select class="med-timing">
+                            <option value="After Food">After Food</option>
+                            <option value="Before Food">Before Food</option>
+                            <option value="Empty Stomach">Empty Stomach</option>
+                            <option value="At Bedtime">At Bedtime</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" id="addMedication" class="btn-secondary">+ Add Medication</button>
+            </section>
+
+            <section class="clinic-details">
+                <h3>Doctors Information</h3>
+                <div class="input-group">
+                    <input type="text" id="doctorName" placeholder="Doctor's Name" required>
+                    <input type="text" id="clinicName" placeholder="Clinic/Hospital Name" required>
+                </div>
+            </section>
+
+            <section class="additional-notes">
+                <h3>Additional Notes</h3>
+                <textarea id="additionalNotes" placeholder="Additional information to pharmacy" rows="3"></textarea>
+            </section>
+
+            <button type="button" id="generatePrescription" class="btn-primary">Generate Prescription</button>
+        </main>
+
+        <!-- Result Modal -->
+        <div id="resultModal" class="modal">
+            <div class="modal-content glass-card">
+                <span class="close">&times;</span>
+                <h2>Prescription Generated !</h2>
+                <div class="otp-container">
+                    <p><span id="displayOTP"></span></p>
+                </div>
+                <div id="qrcode"></div>
+                <p class="modal-hint">Scan the QR code or enter the OTP By PharmaLink to view details.</p>
+                <button id="downloadQR" class="btn-secondary">Download QR Code</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-note">Prototype phase 2.0.3 </p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

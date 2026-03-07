@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#7d2ebe">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AuraScript">
+    <link rel="manifest" href="manifest.json">
+    <title>AuraScript | Doctor Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container" style="max-width: 500px;">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">💚</span>
+                <h1>AuraScript</h1>
+            </div>
+            <p class="subtitle">C:/phase%202/AuraScript/login.html</p>
+        </header>
+
+        <main class="glass-card">
+            <section>
+                <h3>Setup Your Profile</h3>
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 20px;">
+                    This information is used in your prescriptions.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="input-field-container">
+                        <input type="text" id="setupDoctorName" placeholder="Your Name " required>
+                    </div>
+                    <div class="input-field-container">
+                        <input type="text" id="setupClinicName" placeholder="Clinic/Hospital Name" required>
+                    </div>
+                </div>
+            </section>
+
+            <button type="button" id="saveProfile" class="btn-primary" style="margin-top: 10px;">Save & Enter
+                WebPortal</button>
+        </main>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">
+            Data accesed via Localstorage**
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('saveProfile').addEventListener('click', () => {
+            const drName = document.getElementById('setupDoctorName').value.trim();
+            const clName = document.getElementById('setupClinicName').value.trim();
+
+            if (!drName || !clName) {
+                alert("Please fill login pagee to access portal.");
+                return;
+            }
+
+            const profile = {
+                doctorName: drName,
+                clinicName: clName
+            };
+
+            localStorage.setItem('aura_doctor_profile', JSON.stringify(profile));
+            window.location.href = 'index.html';
+        });
+
+        // Pre-fill if exists
+        window.onload = () => {
+            const savedProfile = localStorage.getItem('aura_doctor_profile');
+            if (savedProfile) {
+                const profile = JSON.parse(savedProfile);
+                document.getElementById('setupDoctorName').value = profile.doctorName;
+                document.getElementById('setupClinicName').value = profile.clinicName;
+            }
+        };
+
+    </script>
+
+    <footer>
+        <p class="footer-note">Prototype phase 2.0.3 </p>
+    </footer>
+</body>
+
+</html>
