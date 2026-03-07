@@ -9,14 +9,8 @@ const firebaseConfig = {
     messagingSenderId: "907666198541",
     appId: "1:907666198541:web:55b6401e1a8f036c0e8544"
 };
-// ─────────────────────────────────────────────────────────────────────────────
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-//---------------------------------------------------------------------------------
-// Initialize Firebase
+// Initialize Firebase (using compat CDN — no import needed)
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
