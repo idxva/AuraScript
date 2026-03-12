@@ -422,65 +422,151 @@ select:focus {
 /* ─── Mobile ─────────────────────────────────────────── */
 @media (max-width: 480px) {
     body {
-        align-items: flex-start;
-        padding: 12px 12px env(safe-area-inset-bottom, 12px);
+        align-items:center;
+        padding: 5px 8px env(safe-area-inset-bottom, 5px);
     }
 
     h1 {
-        font-size: 1.7rem;
-        letter-spacing: 0;
+        font-size: 2rem;
+        letter-spacing: 2px;
+    }
+
+    .logo-icon {
+        font-size: 1.1rem;
     }
 
     header {
-        margin-bottom: 20px;
+        margin-bottom: 40px;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        margin-top: 5px;
     }
 
     .glass-card {
-        padding: 16px;
+        padding: 10px;
         border-radius: 18px;
     }
 
+    section {
+        margin-bottom: 30px;
+    }
+
+    h3 {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        padding-bottom: 3px;
+    }
+
     .input-group {
-        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .patient-details .input-group {
+        gap: 6px;
+    }
+    
+    #patientAge {
+        flex: 1 1 calc(20% - 3px);
+    }
+    
+    #patientGender {
+        flex: 1 1 calc(65% - 3px);
     }
 
     .med-item {
-        grid-template-columns: 1fr;
-        margin-bottom: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .med-item .med-name {
+        grid-column: 1 / -1;
+    }
+
+    .med-item .med-timing {
+        grid-column: 1 / -1;
     }
 
     .dosage-group {
-        width: 100%;
+        width: 90%;
+        border-radius: 6px;
+    }
+
+    .dosage-group .med-unit {
+        width: 70px;
+        padding-right: 20px;
+        font-size: 0.85rem;
     }
 
     input,
     select,
     textarea {
-        padding: 12px 14px;
-        font-size: 1rem;
+        padding: 9px 10px;
+        font-size: 0.9rem;
+        border-radius: 6px;
     }
 
     .btn-primary,
     .btn-secondary {
-        padding: 14px;
-        font-size: 1rem;
+        padding: 10px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    #addMedication {
+        padding: 6px;
+        font-size: 0.8rem;
+        margin-top: -2px;
+    }
+
+    #generatePrescription {
+        margin-top: 5px;
     }
 
     /* Make modal scroll on small screens */
     .modal {
-        align-items: flex-start;
+        align-items: center;
         overflow-y: auto;
-        padding: 16px;
+        padding: 8px;
     }
 
     .modal-content {
-        margin: auto;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .otp-container {
+        padding: 8px;
+        font-size: 1.1rem;
+        margin: 5px 0;
+    }
+
+    #qrcode {
+        padding: 8px;
+        margin: 8px 0;
+        transform: scale(0.9);
+    }
+
+    .modal-hint {
+        font-size: 0.75rem;
+        margin-bottom: 10px;
     }
 
     .autocomplete-suggestions {
         width: 100%;
+        max-height: 150px;
+    }
+    
+    footer {
+        padding-bottom: env(safe-area-inset-bottom, 2px);
     }
 }
+
 
 footer {
     position: fixed;
@@ -519,3 +605,4 @@ footer {
   pointer-events: none; /* Allows clicks to pass through it */
   user-select: none;
 }
+
