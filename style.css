@@ -5,7 +5,7 @@
     --glass-bg: rgba(114, 112, 112, 0.103);
     --glass-border: rgba(98, 23, 218, 0.295);
     --text-main: #ffffff;
-    --text-dim: #ffffff21;
+    --text-dim: #e2e2e23d;
 }
 
 * {
@@ -85,7 +85,8 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    margin-top: 1px;
 }
 
 .logo {
@@ -167,6 +168,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 select {
@@ -415,157 +417,139 @@ select:focus {
 
     .med-item .med-name,
     .med-item .med-duration {
-        grid-column: 1 / -1;
+        font-size: 0.85rem;
+    }
+
+    #additionalNotes {
+        padding: 8px 10px;
+        min-height: 50px;
+    }
+
+    .blob {
+        opacity: 0.25;
+        filter: blur(50px);
     }
 }
 
 /* ─── Mobile ─────────────────────────────────────────── */
 @media (max-width: 480px) {
+    /* Prevent body-level scrolling if content fits */
+    html, body {
+        height: 100%;
+        overflow: hidden; 
+        margin: 0;
+        padding: 0;
+    }
+
     body {
-        align-items:center;
-        padding: 5px 8px env(safe-area-inset-bottom, 5px);
+        padding: 30px 10px env(safe-area-inset-bottom, 8px);
+        font-size: 13px; /* Smaller base for density */
+        display: flex;
+        flex-direction: column;
     }
 
-    h1 {
-        font-size: 2rem;
-        letter-spacing: 2px;
-    }
 
-    .logo-icon {
-        font-size: 1.1rem;
-    }
 
-    header {
-        margin-bottom: 40px;
-    }
+    .h1 { font-size: 1.8rem; margin: 1px;margin-bottom: 15px; }
+    .subtitle{font-size: 0.7rem; margin-top: 0.1%;
+}
+    
+    
 
-    .subtitle {
-        font-size: 0.75rem;
-        margin-top: 5px;
-    }
 
     .glass-card {
-        padding: 10px;
-        border-radius: 18px;
+        padding: 8px;
+        border-radius: 11px;
+        flex: 1; /* Grow to fill screen */
+        overflow-y: auto; /* Scroll ONLY inside the card if needed */
     }
 
-    section {
-        margin-bottom: 30px;
-    }
+    section { margin-bottom: 15px; }
 
     h3 {
-        font-size: 0.9rem;
-        margin-bottom: 5px;
-        padding-bottom: 3px;
+        font-size: 0.85rem;
+        font-weight: 10px;
+        margin-bottom: 8px;
+        opacity: 0.7;
+        letter-spacing: 0.85px;
     }
 
-    .input-group {
-        gap: 5px;
-    }
-
+    /* Horizontal Patient Info Line */
     .patient-details .input-group {
+        display: grid;
+        grid-template-columns: 2fr 1fr 0.9fr; /* Name, Age, Gender on one line */
         gap: 6px;
-    }
-    
-    #patientAge {
-        flex: 1 1 calc(20% - 3px);
-    }
-    
-    #patientGender {
-        flex: 1 1 calc(65% - 3px);
+        border-radius: 10px;
+
     }
 
+    /* Ultra-Compact Med Items */
     .med-item {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1.7fr 1fr 1fr; /* Row-based instead of stacked */
         gap: 5px;
-        margin-bottom: 8px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 10px 0;
+        border-bottom: 2px solid rgba(255,255,255,0.05);
+        align-items: center;
     }
 
-    .med-item .med-name {
-        grid-column: 1 / -1;
-    }
-
+    .med-item .med-name, 
     .med-item .med-timing {
-        grid-column: 1 / -1;
-    }
+        grid-column: span 2; /* Force back into single row */
 
-    .dosage-group {
-        width: 90%;
-        border-radius: 6px;
     }
-
     .dosage-group .med-unit {
-        width: 70px;
-        padding-right: 20px;
+        width: 40px;
+        padding-right: 1px;
+        font-size: 1.85rem;
+    }
+
+    /* Minimal Inputs */
+    input, select, textarea {
+        height: 40px; /* Slimmer targets */
+        padding: 4px 8px;
+        font-size: 14px !important; /* Minimum to avoid iOS zoom while staying small */
+        background: rgba(156, 146, 146, 0.027);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+
+    }
+
+    /* Side-by-Side Buttons */
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: auto; /* Push to bottom of screen */
+    }
+
+    .btn-primary{
+        height: 45px;
         font-size: 0.85rem;
     }
-
-    input,
-    select,
-    textarea {
-        padding: 9px 10px;
-        font-size: 0.9rem;
-        border-radius: 6px;
+    .btn-secondary{
+        height: 40px;
+        font-size: 0.80rem;
+        font-weight: 700;
     }
+    
 
-    .btn-primary,
-    .btn-secondary {
-        padding: 10px;
-        font-size: 0.9rem;
-        border-radius: 8px;
-    }
-
-    #addMedication {
-        padding: 6px;
-        font-size: 0.8rem;
-        margin-top: -2px;
-    }
-
-    #generatePrescription {
-        margin-top: 5px;
-    }
-
-    /* Make modal scroll on small screens */
-    .modal {
-        align-items: center;
-        overflow-y: auto;
-        padding: 8px;
-    }
-
+    /* Compact Modal */
     .modal-content {
-        padding: 12px;
-        border-radius: 14px;
-    }
-
-    .otp-container {
-        padding: 8px;
-        font-size: 1.1rem;
-        margin: 5px 0;
+        width: 95%;
+        padding: 15px;
+        transform: scale(0.95);
     }
 
     #qrcode {
-        padding: 8px;
-        margin: 8px 0;
-        transform: scale(0.9);
+        transform: scale(0.7);
+        margin: -10px 0;
     }
-
-    .modal-hint {
-        font-size: 0.75rem;
-        margin-bottom: 10px;
-    }
-
-    .autocomplete-suggestions {
-        width: 100%;
-        max-height: 150px;
-    }
+}
     
     footer {
         padding-bottom: env(safe-area-inset-bottom, 2px);
     }
-}
 
 
 footer {
@@ -593,16 +577,13 @@ footer {
 
 .version-badge {
   position: fixed;
-  bottom: 6px;
-  right: 5px;
+  bottom: 2px;
+  right: 2px;
   padding: 4px 8px;
-  background-color: rgba(0, 0, 0, 0); /* Semi-transparent black */
-  color: #ffffffa9;
+  color: #ffffff49;
   font-family: monospace;
   font-size: 12px;
-  border-radius: 4px;
   z-index: 9999; /* Ensures it stays on top of other elements */
   pointer-events: none; /* Allows clicks to pass through it */
   user-select: none;
 }
-
