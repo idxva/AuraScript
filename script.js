@@ -1,18 +1,5 @@
-// ─── Firebase Configuration ──────────────────────────────────────────────────
-// ⚠️  Replace the values below with YOUR Firebase project config
-// Get it from: Firebase Console → Project Settings → Your Apps → Web App
-const firebaseConfig = {
-    apiKey: "AIzaSyBjckGgFPBnI7h5xAscpoddbzthZb_C-ng",
-    authDomain: "pharmalink-75382.firebaseapp.com",
-    projectId: "pharmalink-75382",
-    storageBucket: "pharmalink-75382.firebasestorage.app",
-    messagingSenderId: "907666198541",
-    appId: "1:907666198541:web:55b6401e1a8f036c0e8544"
-};
-
-// Initialize Firebase (using compat CDN — no import needed)
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// This is a public API location, not a credential.  Secrets stay on the server.
+const API_BASE_URL = window.AURA_API_BASE_URL || 'https://pharmalink-api.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Check for profile
@@ -193,12 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save to localStorage as offline fallback (same device)
         localStorage.setItem(`aura_${otp}`, encryptedData);
 
-        // Save to Firestore for cross-device access
-        db.collection('prescriptions').doc(otp).set({
-            data: encryptedData,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        // Save through our backend for cross-device access. No Google/Firebase
+        // credential is sent to or embedded in the browser.
+        fetch(`${API_BASE_URL}/api/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ otp, data: encryptedData })
         }).catch(err => {
-            console.warn('Firestore save failed (offline mode):', err);
+            console.warn('Remote save failed (offline mode):', err);
         });
 
         // Show Modal
