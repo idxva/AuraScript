@@ -1,7 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 import os
 import sys
+
+# Loads local development values from .env.  On Render, set the same values in
+# the service's Environment settings; never commit the .env file.
+load_dotenv()
 
 # Fix Windows console encoding so print() doesn't crash on special chars
 if sys.platform == 'win32':
