@@ -126,7 +126,3 @@ python -m unittest -v
 - Keep secrets on the server only; never embed them in `index.html`, `login.html`, or `script.js`.
 - The current CryptoJS passphrase is client-side and intended only for prototype-level obfuscation, not production-grade medical data security.
 - Replace in-memory storage with a durable database plus expiry, audit logging, authentication, rate limiting, and access controls before production use.
-
-## License
-
-No license file is currently included. Add one before distributing or accepting external contributions.
