@@ -4,120 +4,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#7d2ebe">
+    <meta name="theme-color" content="#29a897">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AuraScript">
-    <meta name="description" content="Secure digital prescription generation for doctors">
+    <meta name="description" content="AuraScript — digital prescription generation for physicians. Secure, encrypted, QR-linked.">
     <link rel="manifest" href="manifest.json">
     <title>AuraScript | Digital Prescription</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body>
-    <div class="background-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
 
-    <div class="container">
-        <header>
-            <div class="logo">
-                <span class="logo-icon">🩺</span>
-                <h1>AuraScript</h1>
+    <!-- ── App Shell ───────────────────────────────────────── -->
+    <div class="app-shell">
+
+        <!-- ── Header ────────────────────────────────────────── -->
+        <header class="site-header">
+            <div class="header-brand">
+                <div class="brand-lockup">
+                    <div class="brand-icon" aria-hidden="true">
+                        <!-- Medical cross SVG -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z"/>
+                        </svg>
+                    </div>
+                    <span class="brand-name">AuraScript</span>
+                </div>
+                <p class="brand-context" id="headerContext" aria-live="polite">Loading profile…</p>
             </div>
-            <p class="subtitle">Secure and Encrypted | <a href="login.html"
-                    style="color: var(--primary); text-decoration: none; font-weight: 600;">Change Profile</a></p>
+            <div class="header-actions">
+                <a href="login.html" class="change-profile-link" id="changeProfileLink">Change Profile</a>
+            </div>
         </header>
 
-        <main class="glass-card">
-            <section class="patient-details">
-                <h3>Patient Information</h3>
-                <div class="input-group">
-                    <input type="text" id="patientName" placeholder="Patient Name" required>
-                    <input type="number" id="patientAge" placeholder="Age" required>
-                    <select id="patientGender">
-                        <option value="">Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-            </section>
+        <!-- ── Prescription Form ──────────────────────────────── -->
+        <main>
+            <form class="prescription-form" id="prescriptionForm" novalidate>
 
-            <section class="medication-details">
-                <h3>Prescription</h3>
-                <div id="medicationList">
-                    <div class="med-item">
-                        <input type="text" class="med-name" placeholder="Medication Name" required autocomplete="on">
-                        <div class="dosage-group">
-                            <input type="number" class="med-dosage" placeholder="Dose" min="0" step="any" required>
-                            <select class="med-unit">
-                                <option value="mg">mg</option>
-                                <option value="ml">ml</option>
-                                <option value="mcg">mcg</option>
-                                <option value="g">g</option>
+                <!-- Section 01 — Patient Information -->
+                <section class="form-section" aria-labelledby="section-patient">
+                    <div class="section-header">
+                        <span class="section-num" aria-hidden="true">01</span>
+                        <h2 class="section-title" id="section-patient">Patient</h2>
+                    </div>
+                    <div class="input-row input-row-3">
+                        <div class="field-group">
+                            <label class="field-label" for="patientName">Full Name</label>
+                            <input
+                                type="text"
+                                id="patientName"
+                                name="patientName"
+                                placeholder="e.g. Ayra"
+                                autocomplete="off"
+                                required
+                            >
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="patientAge">Age</label>
+                            <input
+                                type="number"
+                                id="patientAge"
+                                name="patientAge"
+                                placeholder="20"
+                                min="0"
+                                max="150"
+                                required
+                            >
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="patientGender">Sex</label>
+                            <select id="patientGender" name="patientGender">
+                                <option value="">—</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Non-Binary</option>
                             </select>
                         </div>
-                        <input type="text" class="med-duration" placeholder="Duration" required>
-                        <select class="med-timing">
-                            <option value="After Food">After Food</option>
-                            <option value="Before Food">Before Food</option>
-                            <option value="Empty Stomach">Empty Stomach</option>
-                            <option value="At Bedtime">At Bedtime</option>
-                        </select>
                     </div>
+                </section>
+
+                <!-- Section 02 — Prescription -->
+                <section class="form-section" aria-labelledby="section-rx">
+                    <div class="section-header">
+                        <span class="section-num" aria-hidden="true">02</span>
+                        <h2 class="section-title" id="section-rx">Prescription</h2>
+                    </div>
+                    <div class="medication-list" id="medicationList">
+                        <div class="med-item">
+                            <input
+                                type="text"
+                                class="med-name"
+                                placeholder="Medication name"
+                                aria-label="Medication name"
+                                autocomplete="off"
+                                required
+                            >
+                            <div class="dosage-group">
+                                <input
+                                    type="number"
+                                    class="med-dosage"
+                                    placeholder="Dose"
+                                    aria-label="Dose amount"
+                                    min="0"
+                                    step="any"
+                                    required
+                                >
+                                <select class="med-unit" aria-label="Dose unit">
+                                    <option value="mg">mg</option>
+                                    <option value="ml">ml</option>
+                                    <option value="mcg">mcg</option>
+                                    <option value="g">g</option>
+                                </select>
+                            </div>
+                            <input
+                                type="text"
+                                class="med-duration"
+                                placeholder="Duration"
+                                aria-label="Duration"
+                                required
+                            >
+                            <select class="med-timing" aria-label="Timing">
+                                <option value="After Food">After Food</option>
+                                <option value="Before Food">Before Food</option>
+                                <option value="Empty Stomach">Empty Stomach</option>
+                                <option value="At Bedtime">At Bedtime</option>
+                            </select>
+                            <button
+                                type="button"
+                                class="btn-delete-med"
+                                aria-label="Remove medication"
+                                title="Remove"
+                                disabled
+                            >
+                                <!-- X icon -->
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="addMedication" class="btn-add-med">
+                        <!-- Plus icon -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Medication
+                    </button>
+                </section>
+
+                <!-- Section 03 — Physician -->
+                <section class="form-section" aria-labelledby="section-doc">
+                    <div class="section-header">
+                        <span class="section-num" aria-hidden="true">03</span>
+                        <h2 class="section-title" id="section-doc">Physician</h2>
+                    </div>
+                    <div class="input-row input-row-2">
+                        <div class="field-group">
+                            <label class="field-label" for="doctorName">Doctor's Name</label>
+                            <input
+                                type="text"
+                                id="doctorName"
+                                name="doctorName"
+                                placeholder="Dr. Priya Nair"
+                                autocomplete="name"
+                                required
+                            >
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="clinicName">Clinic / Hospital</label>
+                            <input
+                                type="text"
+                                id="clinicName"
+                                name="clinicName"
+                                placeholder="City Care Clinic"
+                                autocomplete="organization"
+                                required
+                            >
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 04 — Notes -->
+                <section class="form-section" aria-labelledby="section-notes">
+                    <div class="section-header">
+                        <span class="section-num" aria-hidden="true">04</span>
+                        <h2 class="section-title" id="section-notes">Notes</h2>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="additionalNotes">Instructions for pharmacist (optional)</label>
+                        <textarea
+                            id="additionalNotes"
+                            name="additionalNotes"
+                            placeholder="e.g. Dispense brand only. No generic substitutions."
+                            rows="3"
+                        ></textarea>
+                    </div>
+                </section>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" id="generatePrescription" class="btn-primary">
+                        <!-- QR / generate icon -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="3" height="3" rx="0.5"/>
+                            <rect x="18" y="14" width="3" height="3" rx="0.5"/>
+                            <rect x="14" y="18" width="3" height="3" rx="0.5"/>
+                            <rect x="18" y="18" width="3" height="3" rx="0.5"/>
+                        </svg>
+                        Generate Prescription
+                    </button>
                 </div>
-                <button type="button" id="addMedication" class="btn-secondary">+ Add Medication</button>
-            </section>
 
-            <section class="clinic-details">
-                <h3>Doctor Information</h3>
-                <div class="input-group">
-                    <input type="text" id="doctorName" placeholder="Doctor's Name" required>
-                    <input type="text" id="clinicName" placeholder="Clinic/Hospital Name" required>
-                </div>
-            </section>
-
-            <section class="additional-notes">
-                <h3>Additional Notes</h3>
-                <textarea id="additionalNotes" placeholder="Additional information to pharmacy" rows="3"></textarea>
-            </section>
-
-            <button type="button" id="generatePrescription" class="btn-primary">Generate Prescription</button>
+            </form>
         </main>
 
-        <!-- Result Modal -->
-        <div id="resultModal" class="modal">
-            <div class="modal-content glass-card">
-                <span class="close">&times;</span>
-                <h2>Prescription Generated !</h2>
-                <div class="otp-container">
-                    <p><span id="displayOTP"></span></p>
+        <!-- ── Footer ────────────────────────────────────────── -->
+        <footer class="site-footer">
+            <span class="footer-copy">&copy; 2026 AuraScript</span>
+            <span class="version-badge">v0.8.7</span>
+        </footer>
+
+    </div><!-- /.app-shell -->
+
+    <!-- ── Prescription Modal ────────────────────────────────── -->
+    <div id="resultModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Prescription Ready</span>
+                <button class="modal-close" id="closeModal" aria-label="Close prescription modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p class="otp-label">Prescription Code</p>
+                    <div class="otp-chip">
+                        <span id="displayOTP" aria-live="polite"></span>
+                    </div>
                 </div>
-                <div id="qrcode"></div>
-                <p class="modal-hint">Scan the QR code or enter the OTP in PharmaLink to view details.</p>
-                <button id="downloadQR" class="btn-secondary">Download QR Code</button>
+                <div class="qr-wrapper">
+                    <div id="qrcode"></div>
+                </div>
+                <p class="modal-hint">Show this code or QR to your pharmacist via PharmaLink to retrieve your prescription.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="downloadQR" class="btn-secondary">
+                    <!-- Download icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Save as Image
+                </button>
             </div>
         </div>
     </div>
-    <footer>
-       <div class="footer-container">
-           <p>🐉</p>
-           <span class="footer-note">&copy; 2026 AuraScript. All rights reserved.</span>
-       </div>
-    </footer>
-    <div class="version-badge">V 0.8.7</div>
+
+    <!-- ── Toast Notifications ───────────────────────────────── -->
+    <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
 
     <script src="script.js"></script>
 </body>
 
-
 </html>
-
