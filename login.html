@@ -4,102 +4,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#7d2ebe">
+    <meta name="theme-color" content="#29a897">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AuraScript">
+    <meta name="description" content="AuraScript — set up your physician profile to start generating digital prescriptions.">
     <link rel="manifest" href="manifest.json">
-    <title>AuraScript | Doctor Login</title>
+    <title>AuraScript | Physician Profile</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="background-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
 
-    <div class="container" style="max-width: 500px;">
+    <div class="login-shell">
+
+        <!-- ── Brand Header ──────────────────────────────────── -->
         <header>
-            <div class="logo">
-                <span class="logo-icon">💚</span>
-                <h1>AuraScript</h1>
+            <div class="brand-lockup">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z"/>
+                    </svg>
+                </div>
+                <span class="brand-name">AuraScript</span>
             </div>
-            <p class="subtitle">Secure doctor profile setup</p>
         </header>
 
-        <main class="glass-card">
-            <section>
-                <h3>Setup Your Profile</h3>
-                <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 20px;">
-                    This information is used in your prescriptions.
-                </p>
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <div class="input-field-container">
-                        <input type="text" id="setupDoctorName" placeholder="Doctor's Name" required>
+        <!-- ── Profile Card ──────────────────────────────────── -->
+        <main>
+            <div class="login-card">
+                <div class="login-card-body">
+                    <div class="section-header">
+                        <span class="section-num" aria-hidden="true">01</span>
+                        <h1 class="section-title">Physician Profile</h1>
                     </div>
-                    <div class="input-field-container">
-                        <input type="text" id="setupClinicName" placeholder="Clinic/Hospital Name" required>
-                    </div>
-                </div>
-            </section>
 
-            <button type="button" id="saveProfile" class="btn-primary" style="margin-top: 10px;">Save & Enter
-                Portal</button>
+                    <div class="login-fields">
+                        <div class="field-group">
+                            <label class="field-label" for="setupDoctorName">Your Name</label>
+                            <input
+                                type="text"
+                                id="setupDoctorName"
+                                name="doctorName"
+                                placeholder="Dr. Priya Nair"
+                                autocomplete="name"
+                                required
+                            >
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="setupClinicName">Clinic / Hospital</label>
+                            <input
+                                type="text"
+                                id="setupClinicName"
+                                name="clinicName"
+                                placeholder="City Care Clinic, Chennai"
+                                autocomplete="organization"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="button" id="saveProfile" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Save &amp; Enter Portal
+                    </button>
+
+                    <p class="login-help">
+                        Your name and clinic appear on every prescription you generate. This information is stored locally on your device only and is never uploaded.
+                    </p>
+                </div>
+            </div>
         </main>
 
-        <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">
-            Profile data is stored locally in your browser.
-        </p>
-    </div>
+        <!-- ── Footer Note ────────────────────────────────────── -->
+        <p class="login-footer-note">Data stored in browser localStorage · Not synced to a server</p>
+
+    </div><!-- /.login-shell -->
+
+    <!-- ── Toast Notifications ──────────────────────────────── -->
+    <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
 
     <script>
+        // ── Inline minimal script for login page ──────────────
+        // (Avoids depending on the main script.js which expects index.html elements)
+
+        function showToast(message, type) {
+            const region = document.getElementById('toastRegion');
+            const icons = {
+                error:   '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+                success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast toast--${type}`;
+            toast.innerHTML = `${icons[type] || ''}<span>${message}</span>`;
+            region.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('is-leaving');
+                toast.addEventListener('animationend', () => toast.remove(), { once: true });
+            }, 3000);
+        }
+
         document.getElementById('saveProfile').addEventListener('click', () => {
             const drName = document.getElementById('setupDoctorName').value.trim();
             const clName = document.getElementById('setupClinicName').value.trim();
 
             if (!drName || !clName) {
-                alert("Please fill in your profile to access the portal.");
+                showToast('Please enter your name and clinic before continuing.', 'error');
                 return;
             }
 
-            const profile = {
-                doctorName: drName,
-                clinicName: clName
-            };
-
+            const profile = { doctorName: drName, clinicName: clName };
             localStorage.setItem('aura_doctor_profile', JSON.stringify(profile));
             window.location.href = 'index.html';
         });
 
-        // Pre-fill if exists
-        window.onload = () => {
-            const savedProfile = localStorage.getItem('aura_doctor_profile');
-            if (!savedProfile) return;
-
-            try {
-                const profile = JSON.parse(savedProfile);
-                document.getElementById('setupDoctorName').value = profile.doctorName || '';
-                document.getElementById('setupClinicName').value = profile.clinicName || '';
-            } catch (err) {
-                console.warn('Saved profile is invalid and will be reset:', err);
-                localStorage.removeItem('aura_doctor_profile');
+        // Pre-fill if profile already exists
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('aura_doctor_profile');
+            if (saved) {
+                try {
+                    const profile = JSON.parse(saved);
+                    document.getElementById('setupDoctorName').value = profile.doctorName || '';
+                    document.getElementById('setupClinicName').value = profile.clinicName || '';
+                } catch (e) { /* ignore corrupt data */ }
             }
-        };
+        });
 
+        // Allow Enter key to submit
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('saveProfile').click();
+        });
     </script>
-    <footer>
-       <div class="footer-container">
-           <p>🐉</p>
-           <span class="footer-note">&copy; 2026 Aurascript All rights reserved</span>
-       </div>
-    </footer>
-    <div class="version-badge">V 0.8.7</div>
 
 </body>
-
 
 </html>
