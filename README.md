@@ -31,8 +31,8 @@ AuraScript focuses on quick prescription handoff without putting provider secret
 
 ```text
 .
-├── index.html          # Prescription form and QR modal
 ├── login.html          # Doctor profile setup page
+├── index.html          # Prescription form and QR modal
 ├── script.js           # Frontend logic, OTP/QR generation, API save call
 ├── style.css           # Responsive glassmorphism UI styles
 ├── manifest.json       # PWA metadata
