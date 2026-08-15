@@ -11,7 +11,7 @@ class ClientSecretRegressionTests(unittest.TestCase):
 
         self.assertNotIn("AIza", source)
         self.assertNotIn("firebase.initializeApp", source)
-        self.assertNotIn("apiKey:", source)
+        self.assertNotIn("apiKey", source)
 
     def test_index_does_not_load_firebase_sdks(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")

@@ -28,7 +28,7 @@
                 <span class="logo-icon">💚</span>
                 <h1>AuraScript</h1>
             </div>
-            <p class="subtitle">C:/phase%202/AuraScript/login.html</p>
+            <p class="subtitle">Secure doctor profile setup</p>
         </header>
 
         <main class="glass-card">
@@ -39,7 +39,7 @@
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                     <div class="input-field-container">
-                        <input type="text" id="setupDoctorName" placeholder="Your Name " required>
+                        <input type="text" id="setupDoctorName" placeholder="Doctor's Name" required>
                     </div>
                     <div class="input-field-container">
                         <input type="text" id="setupClinicName" placeholder="Clinic/Hospital Name" required>
@@ -48,11 +48,11 @@
             </section>
 
             <button type="button" id="saveProfile" class="btn-primary" style="margin-top: 10px;">Save & Enter
-                WebPortal</button>
+                Portal</button>
         </main>
 
         <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">
-            Data accesed via Localstorage**
+            Profile data is stored locally in your browser.
         </p>
     </div>
 
@@ -62,7 +62,7 @@
             const clName = document.getElementById('setupClinicName').value.trim();
 
             if (!drName || !clName) {
-                alert("Please fill login pagee to access portal.");
+                alert("Please fill in your profile to access the portal.");
                 return;
             }
 
@@ -78,10 +78,15 @@
         // Pre-fill if exists
         window.onload = () => {
             const savedProfile = localStorage.getItem('aura_doctor_profile');
-            if (savedProfile) {
+            if (!savedProfile) return;
+
+            try {
                 const profile = JSON.parse(savedProfile);
-                document.getElementById('setupDoctorName').value = profile.doctorName;
-                document.getElementById('setupClinicName').value = profile.clinicName;
+                document.getElementById('setupDoctorName').value = profile.doctorName || '';
+                document.getElementById('setupClinicName').value = profile.clinicName || '';
+            } catch (err) {
+                console.warn('Saved profile is invalid and will be reset:', err);
+                localStorage.removeItem('aura_doctor_profile');
             }
         };
 

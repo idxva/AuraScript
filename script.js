@@ -10,12 +10,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (savedProfile) {
-        const profile = JSON.parse(savedProfile);
-        const drInput = document.getElementById('doctorName');
-        const clInput = document.getElementById('clinicName');
-        if (drInput) drInput.value = profile.doctorName;
-        if (clInput) clInput.value = profile.clinicName;
+        try {
+            const profile = JSON.parse(savedProfile);
+            const drInput = document.getElementById('doctorName');
+            const clInput = document.getElementById('clinicName');
+            if (drInput) drInput.value = profile.doctorName || '';
+            if (clInput) clInput.value = profile.clinicName || '';
+        } catch (err) {
+            console.warn('Saved profile is invalid and will be reset:', err);
+            localStorage.removeItem('aura_doctor_profile');
+            window.location.href = 'login.html';
+            return;
+        }
     }
+
     const medList = document.getElementById('medicationList');
     const addMedBtn = document.getElementById('addMedication');
     const generateBtn = document.getElementById('generatePrescription');
@@ -311,8 +319,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateOTP(length) {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
+        const cryptoObj = window.crypto || window.msCrypto;
+        const randomValues = cryptoObj && cryptoObj.getRandomValues
+            ? cryptoObj.getRandomValues(new Uint32Array(length))
+            : null;
+
         for (let i = 0; i < length; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
+            const value = randomValues ? randomValues[i] : Math.floor(Math.random() * chars.length);
+            result += chars.charAt(value % chars.length);
         }
         return result;
     }

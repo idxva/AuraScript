@@ -25,7 +25,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    // Cache-first for static assets; let Firestore/CDN calls pass through
+    // Cache-first for static assets; let API/CDN calls pass through
     e.respondWith(
         caches.match(e.request).then(cached => cached || fetch(e.request))
     );
