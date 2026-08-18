@@ -1,4 +1,4 @@
-# AuraScript
+#  🌟AuraScript
 
 AuraScript is a lightweight digital prescription web app for doctors. It lets a doctor set up a local profile, create a patient prescription, generate a short access code and QR code, and store the encrypted prescription through a small Flask API for pharmacist retrieval.
 
