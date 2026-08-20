@@ -320,13 +320,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
         const cryptoObj = window.crypto || window.msCrypto;
-        const randomValues = cryptoObj && cryptoObj.getRandomValues
-            ? cryptoObj.getRandomValues(new Uint32Array(length))
-            : null;
+        const hasCrypto = !!(cryptoObj && cryptoObj.getRandomValues);
+
+        function getSecureIndex(max) {
+            const range = 0x100000000; // 2^32
+            const maxUnbiased = Math.floor(range / max) * max;
+            const buf = new Uint32Array(1);
+            let value;
+            do {
+                cryptoObj.getRandomValues(buf);
+                value = buf[0];
+            } while (value >= maxUnbiased);
+            return value % max;
+        }
 
         for (let i = 0; i < length; i++) {
-            const value = randomValues ? randomValues[i] : Math.floor(Math.random() * chars.length);
-            result += chars.charAt(value % chars.length);
+            const index = hasCrypto ? getSecureIndex(chars.length) : Math.floor(Math.random() * chars.length);
+            result += chars.charAt(index);
         }
         return result;
     }
