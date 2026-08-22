@@ -1,4 +1,4 @@
-#  🌟AuraScript
+# AuraScript
 
 AuraScript is a lightweight digital prescription web app for doctors. It lets a doctor set up a local profile, create a patient prescription, generate a short access code and QR code, and store the encrypted prescription through a small Flask API for pharmacist retrieval.
 
@@ -126,3 +126,16 @@ python -m unittest -v
 - Keep secrets on the server only; never embed them in `index.html`, `login.html`, or `script.js`.
 - The current CryptoJS passphrase is client-side and intended only for prototype-level obfuscation, not production-grade medical data security.
 - Replace in-memory storage with a durable database plus expiry, audit logging, authentication, rate limiting, and access controls before production use.
+
+
+## Contributing
+
+Issues and pull requests are welcome. If you spot a bug or have an idea for a feature, feel free to open an issue.
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+<p align="center">Built by <a href="https://github.com/idxva">idxva</a></p>
