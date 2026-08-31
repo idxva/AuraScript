@@ -24,11 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const prescriptionForm = document.getElementById('prescriptionForm');
     const medList = document.getElementById('medicationList');
     const addMedBtn = document.getElementById('addMedication');
     const generateBtn = document.getElementById('generatePrescription');
     const modal = document.getElementById('resultModal');
-    const closeBtn = document.querySelector('.close');
+    const closeBtn = document.getElementById('closeModal') || document.querySelector('.modal-close');
     const qrcodeDiv = document.getElementById('qrcode');
     const displayOTP = document.getElementById('displayOTP');
     const downloadBtn = document.getElementById('downloadQR');
@@ -141,31 +142,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAutocomplete(document.querySelector('.med-name'));
 
     // Generate Prescription
-    generateBtn.addEventListener('click', () => {
+    function handleGeneratePrescription(e) {
+        if (e) e.preventDefault();
+
         const patientData = {
-            name: document.getElementById('patientName').value,
-            age: document.getElementById('patientAge').value,
+            name: document.getElementById('patientName').value.trim(),
+            age: document.getElementById('patientAge').value.trim(),
             gender: document.getElementById('patientGender').value
         };
 
         const medications = [];
         document.querySelectorAll('.med-item').forEach(item => {
-            const dosageVal = item.querySelector('.med-dosage').value;
+            const name = item.querySelector('.med-name').value.trim();
+            const dosageVal = item.querySelector('.med-dosage').value.trim();
             const dosageUnit = item.querySelector('.med-unit').value;
-            medications.push({
-                name: item.querySelector('.med-name').value,
-                dosage: dosageVal ? `${dosageVal} ${dosageUnit}` : '',
-                duration: item.querySelector('.med-duration').value,
-                timing: item.querySelector('.med-timing').value
-            });
+            if (name) {
+                medications.push({
+                    name: name,
+                    dosage: dosageVal ? `${dosageVal} ${dosageUnit}` : '',
+                    duration: item.querySelector('.med-duration').value.trim(),
+                    timing: item.querySelector('.med-timing').value
+                });
+            }
         });
 
         const doctorData = {
-            name: document.getElementById('doctorName').value,
-            clinic: document.getElementById('clinicName').value
+            name: document.getElementById('doctorName').value.trim(),
+            clinic: document.getElementById('clinicName').value.trim()
         };
 
-        if (!patientData.name || !doctorData.name || medications[0].name === "") {
+        if (!patientData.name || !doctorData.name || medications.length === 0) {
             alert("Please fill in all required fields.");
             return;
         }
@@ -200,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show Modal
         displayOTP.textContent = otp;
+        modal.classList.add('is-open');
         modal.style.display = 'flex';
 
         // Clear and Generate QR Code
@@ -214,7 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         resetForm();
-    });
+    }
+
+    if (prescriptionForm) {
+        prescriptionForm.addEventListener('submit', handleGeneratePrescription);
+    }
+    if (generateBtn) {
+        generateBtn.addEventListener('click', handleGeneratePrescription);
+    }
 
     function resetForm() {
         document.getElementById('patientName').value = "";
@@ -246,10 +260,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('additionalNotes').value = "";
     }
 
-    closeBtn.onclick = () => modal.style.display = 'none';
+    function closeModal() {
+        modal.classList.remove('is-open');
+        modal.style.display = 'none';
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = closeModal;
+    }
     window.onclick = (event) => {
-        if (event.target == modal) modal.style.display = 'none';
+        if (event.target == modal) closeModal();
     };
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
+        }
+    });
 
     downloadBtn.addEventListener('click', () => {
         const otp = displayOTP.textContent;
