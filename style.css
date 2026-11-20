@@ -164,23 +164,9 @@ body {
     color: inherit;
 }
 
-.brand-icon {
-    width: 36px;
-    height: 36px;
-    background: var(--teal-700);
-    color: #ffffff;
-    border-radius: var(--r-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-xs);
-    flex-shrink: 0;
-}
 
-.brand-icon svg {
-    width: 20px;
-    height: 20px;
-}
+
+
 
 .brand-titles {
     display: flex;
@@ -226,7 +212,6 @@ body {
     align-items: center;
     gap: var(--sp-2);
     padding: var(--sp-2) var(--sp-3);
-    border: 1px solid var(--slate-200);
     border-radius: var(--r-md);
     font-size: 0.8125rem;
 }
@@ -286,23 +271,7 @@ body {
     padding: 0 var(--sp-2);
 }
 
-.security-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--teal-800);
-    background: var(--teal-50);
-    border: 1px solid var(--teal-200);
-    padding: 3px 8px;
-    border-radius: var(--r-full);
-    font-weight: 500;
-}
 
-.security-indicator svg {
-    width: 12px;
-    height: 12px;
-    color: var(--teal-600);
-}
 
 .station-clock {
     font-family: var(--font-mono);
