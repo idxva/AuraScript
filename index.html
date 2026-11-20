@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#29a897">
+    <meta name="theme-color" content="#0f766e">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="AuraScript">
-    <meta name="description" content="AuraScript — digital prescription generation for physicians. Secure, encrypted, QR-linked.">
+    <meta name="description" content="AuraScript — clinical electronic prescription workstation for physicians. Secure, client-side encrypted, QR-linked.">
     <link rel="manifest" href="manifest.json">
-    <title>AuraScript | Digital Prescription</title>
+    <title>AuraScript | Clinical E-Prescription Workstation</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -27,76 +27,134 @@
             <div class="header-brand">
                 <div class="brand-lockup">
                     <div class="brand-icon" aria-hidden="true">
-                        <!-- Medical cross SVG -->
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z"/>
+                        <!-- Medical cross SVG with clinical proportions -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
                     </div>
-                    <span class="brand-name">AuraScript</span>
+                    <div class="brand-titles">
+                        <span class="brand-name">
+                            AuraScript
+                        </span>
+                        <span class="brand-subtitle"> E-Prescribing System</span>
+                    </div>
                 </div>
-                <!-- <p class="brand-context" id="headerContext" aria-live="polite">Loading profile…</p> -->
             </div>
+
             <div class="header-actions">
-                <a href="login.html" class="change-profile-link" id="changeProfileLink">Change Profile</a>
+                <div class="doctor-badge" id="headerDoctorBadge" title="Current practitioner credentials">
+                    <div class="doctor-badge-info">
+                        <span class="doctor-badge-name" id="headerDoctorName">Practitioner</span>
+                        <span class="doctor-badge-clinic" id="headerClinicName">Clinic / Practice</span>
+                    </div>
+                </div>
+                <a href="login.html" class="change-profile-link" id="changeProfileLink">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Switch Provider
+                </a>
             </div>
         </header>
 
-        <!-- ── Prescription Form ──────────────────────────────── -->
+        <!-- ── Status Subbar ───────────────────────────────────── -->
+        <div class="station-subbar">
+            <div class="security-indicator">
+
+            </div>
+            <div class="station-clock" id="currentDateDisplay">Today</div>
+        </div>
+
+        <!-- ── Main Prescription Document Sheet ───────────────── -->
         <main>
             <form class="prescription-form" id="prescriptionForm" novalidate>
 
-                <!-- Section 01 — Patient Information -->
+                <!-- Document Header -->
+                <div class="rx-sheet-header">
+                    <div class="rx-sheet-title-group">
+                        <span class="rx-symbol" aria-hidden="true">℞</span>
+                        <div class="rx-sheet-headings">
+                            <h1>Medical Prescription Order</h1>
+                            <p>Official digital handoff for licensed pharmacy dispensing</p>
+                        </div>
+                    </div>
+                    <div class="rx-reference-tag">
+                        <span>Document Ref</span>
+                        <strong id="rxSerialTag">AS-2026-RX</strong>
+                    </div>
+                </div>
+
+                <!-- Section 01 — Patient Identification -->
                 <section class="form-section" aria-labelledby="section-patient">
                     <div class="section-header">
-                        <h2 class="section-title" id="section-patient">Patient</h2>
+                        <h2 class="section-title" id="section-patient">Patient Information</h2>
+                        <span class="section-badge">Required for clinical verification</span>
                     </div>
                     <div class="input-row input-row-3">
                         <div class="field-group">
-                            <label class="field-label" for="patientName">Full Name</label>
+                            <label class="field-label" for="patientName">
+                                <span>Patient Full Name <span class="req">*</span></span>
+                            </label>
                             <input
                                 type="text"
                                 id="patientName"
                                 name="patientName"
-                                placeholder="e.g. Ayra"
+                                placeholder="e.g. John Doe"
                                 autocomplete="off"
                                 required
                             >
                         </div>
                         <div class="field-group">
-                            <label class="field-label" for="patientAge">Age</label>
+                            <label class="field-label" for="patientAge">
+                                <span>Age (Years) <span class="req">*</span></span>
+                            </label>
                             <input
                                 type="number"
                                 id="patientAge"
                                 name="patientAge"
-                                placeholder="20"
+                                placeholder="e.g. 42"
                                 min="0"
-                                max="150"
+                                max="130"
                                 required
                             >
                         </div>
                         <div class="field-group">
-                            <label class="field-label" for="patientGender">Sex</label>
+                            <label class="field-label" for="patientGender">
+                                <span>Biological Sex</span>
+                            </label>
                             <select id="patientGender" name="patientGender">
-                                <option value="">—</option>
+                                <option value="">Select sex</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Non-Binary</option>
+                                <option value="Other">Non-Binary / Other</option>
                             </select>
                         </div>
                     </div>
                 </section>
 
-                <!-- Section 02 — Prescription -->
+                <!-- Section 02 — Medication Orders (℞) -->
                 <section class="form-section" aria-labelledby="section-rx">
                     <div class="section-header">
-                        <h2 class="section-title" id="section-rx">Prescription</h2>
+                        <h2 class="section-title" id="section-rx">Medication Orders &amp; Dosage</h2>
+                        <span class="section-badge" id="medCounterBadge">1 item prescribed</span>
                     </div>
+
+                    <div class="medication-table-header" aria-hidden="true">
+                        <span>Medication (Generic / Brand)</span>
+                        <span>Dose &amp; Unit</span>
+                        <span>Duration</span>
+                        <span>Administration Timing</span>
+                        <span></span>
+                    </div>
+
                     <div class="medication-list" id="medicationList">
                         <div class="med-item">
                             <input
                                 type="text"
                                 class="med-name"
-                                placeholder="Medication name"
+                                placeholder="Medication name (e.g. Amoxicillin)"
                                 aria-label="Medication name"
                                 autocomplete="off"
                                 required
@@ -105,7 +163,7 @@
                                 <input
                                     type="number"
                                     class="med-dosage"
-                                    placeholder="Dose"
+                                    placeholder="Amount"
                                     aria-label="Dose amount"
                                     min="0"
                                     step="any"
@@ -116,70 +174,77 @@
                                     <option value="ml">ml</option>
                                     <option value="mcg">mcg</option>
                                     <option value="g">g</option>
+                                    <option value="IU">IU</option>
+                                    <option value="drops">drops</option>
                                 </select>
                             </div>
                             <input
                                 type="text"
                                 class="med-duration"
-                                placeholder="Duration"
+                                placeholder="e.g. 5 days"
                                 aria-label="Duration"
                                 required
                             >
                             <select class="med-timing" aria-label="Timing">
-                                <option value="After Food">After Food</option>
-                                <option value="Before Food">Before Food</option>
+                                <option value="After Food">After Food (Post cibum)</option>
+                                <option value="Before Food">Before Food (Ante cibum)</option>
+                                <option value="With Meals">With Meals</option>
                                 <option value="Empty Stomach">Empty Stomach</option>
-                                <option value="At Bedtime">At Bedtime</option>
+                                <option value="At Bedtime">At Bedtime (Hora somni)</option>
+                                <option value="As Needed">As Needed (PRN)</option>
                             </select>
                             <button
                                 type="button"
                                 class="btn-delete-med"
-                                aria-label="Remove medication"
-                                title="Remove"
-                                disabled
+                                aria-label="Remove medication line"
+                                title="Remove item"
                             >
-                                <!-- X icon -->
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
                             </button>
                         </div>
                     </div>
+
                     <button type="button" id="addMedication" class="btn-add-med">
-                        <!-- Plus icon -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        Add Medication
+                        Add Medication Line
                     </button>
                 </section>
 
-                <!-- Section 03 — Physician -->
+                <!-- Section 03 — Attending Physician -->
                 <section class="form-section" aria-labelledby="section-doc">
                     <div class="section-header">
-                        <h2 class="section-title" id="section-doc">Physician</h2>
+                        <h2 class="section-title" id="section-doc">Prescribing Practitioner</h2>
+                        <span class="section-badge">Verified credentials</span>
                     </div>
                     <div class="input-row input-row-2">
                         <div class="field-group">
-                            <label class="field-label" for="doctorName">Doctor's Name</label>
+                            <label class="field-label" for="doctorName">
+                                <span>Practitioner Name <span class="req">*</span></span>
+                            </label>
                             <input
                                 type="text"
                                 id="doctorName"
                                 name="doctorName"
-                                placeholder="Dr. Priya Nair"
+                                placeholder="e.g. Dr. Priya Nair, MD"
                                 autocomplete="name"
                                 required
                             >
                         </div>
                         <div class="field-group">
-                            <label class="field-label" for="clinicName">Clinic / Hospital</label>
+                            <label class="field-label" for="clinicName">
+                                <span>Clinic / Hospital Facility <span class="req">*</span></span>
+                            </label>
                             <input
                                 type="text"
                                 id="clinicName"
                                 name="clinicName"
-                                placeholder="City Care Clinic"
+                                placeholder="e.g. City Care Medical Center"
                                 autocomplete="organization"
                                 required
                             >
@@ -187,36 +252,43 @@
                     </div>
                 </section>
 
-                <!-- Section 04 — Notes -->
+                <!-- Section 04 — Pharmacist Instructions & Dispense Notes -->
                 <section class="form-section" aria-labelledby="section-notes">
                     <div class="section-header">
-                        <h2 class="section-title" id="section-notes">Notes</h2>
+                        <h2 class="section-title" id="section-notes">Pharmacist Instructions &amp; Special Directives</h2>
+                        <span class="section-badge opt">Optional</span>
                     </div>
                     <div class="field-group">
-                        <label class="field-label" for="additionalNotes">Instructions for pharmacist (optional)</label>
+                        <label class="field-label" for="additionalNotes">
+                            <span>Dispensing Directives &amp; Precautions</span>
+                        </label>
                         <textarea
                             id="additionalNotes"
                             name="additionalNotes"
-                            placeholder="e.g. Dispense brand only. No generic substitutions."
+                            placeholder="e.g. Dispense brand only. No generic substitution. Take with full glass of water."
                             rows="3"
                         ></textarea>
+                        <div class="quick-tags-container" aria-label="Common directives">
+                            <button type="button" class="quick-tag-btn" data-tag="Dispense brand name only.">Brand Only</button>
+                            <button type="button" class="quick-tag-btn" data-tag="Generic substitution permitted.">Generic Allowed</button>
+                            <button type="button" class="quick-tag-btn" data-tag="Take with full glass of water.">With Water</button>
+                            <button type="button" class="quick-tag-btn" data-tag="Review in clinic after 14 days.">Review 14 Days</button>
+                            <button type="button" class="quick-tag-btn" data-tag="Keep refrigerated (2°C - 8°C).">Refrigerate</button>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Form Actions -->
                 <div class="form-actions">
+                    <div class="form-actions-left">
+                        <button type="button" id="btnDiscardForm" class="btn-discard">Reset Draft</button>
+                    </div>
                     <button type="submit" id="generatePrescription" class="btn-primary">
-                        <!-- QR / generate icon -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/>
-                            <rect x="14" y="3" width="7" height="7" rx="1"/>
-                            <rect x="3" y="14" width="7" height="7" rx="1"/>
-                            <rect x="14" y="14" width="3" height="3" rx="0.5"/>
-                            <rect x="18" y="14" width="3" height="3" rx="0.5"/>
-                            <rect x="14" y="18" width="3" height="3" rx="0.5"/>
-                            <rect x="18" y="18" width="3" height="3" rx="0.5"/>
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
-                        Generate Prescription
+                        Sign &amp; Generate Encrypted Prescription
                     </button>
                 </div>
 
@@ -225,17 +297,20 @@
 
         <!-- ── Footer ────────────────────────────────────────── -->
         <footer class="site-footer">
-            <span class="footer-copy">&copy; 2026 AuraScript</span>
-            <span class="version-badge">v0.8.7</span>
+            <span class="footer-copy">&copy; 2026 AuraScript Clinical Platform</span>
+            <span class="version-badge">HIPAA / PharmaLink Interop v2.4</span>
         </footer>
 
     </div><!-- /.app-shell -->
 
-    <!-- ── Prescription Modal ────────────────────────────────── -->
+    <!-- ── Clinical Prescription Ready Modal ─────────────────── -->
     <div id="resultModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-dialog">
             <div class="modal-header">
-                <span class="modal-title" id="modalTitle">Prescription Ready</span>
+                <div class="modal-title-group">
+                    <span class="modal-status-dot" aria-hidden="true"></span>
+                    <span class="modal-title" id="modalTitle">Official Prescription Token Generated</span>
+                </div>
                 <button class="modal-close" id="closeModal" aria-label="Close prescription modal">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -244,32 +319,47 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div>
-                    <p class="otp-label">Prescription Code</p>
-                    <div class="otp-chip">
-                        <span id="displayOTP" aria-live="polite"></span>
-                    </div>
+                <div class="prescription-voucher-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Encrypted Payload Ready
                 </div>
+
+                <div class="otp-container">
+                    <p class="otp-label">Pharmacy Dispensing Access Code</p>
+                    <div class="otp-chip">
+                        <span id="displayOTP" aria-live="polite">-----</span>
+                    </div>
+                    <button type="button" class="btn-copy-otp" id="btnCopyOTP" title="Copy code to clipboard">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy Access Code
+                    </button>
+                </div>
+
                 <div class="qr-wrapper">
                     <div id="qrcode"></div>
                 </div>
-                <p class="modal-hint">Show this code or QR to your pharmacist via PharmaLink to retrieve your prescription.</p>
+
+                <p class="modal-hint">The patient can present this QR code or 5-character OTP to any participating pharmacy via PharmaLink for instantaneous encrypted decryption.</p>
             </div>
             <div class="modal-footer">
                 <button id="downloadQR" class="btn-secondary">
-                    <!-- Download icon -->
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                         <polyline points="7 10 12 15 17 10"/>
                         <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
-                    Save as Image
+                    Download Digital Prescription Card
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ── Toast Notifications ───────────────────────────────── -->
+    <!-- ── Toast Notifications Region ────────────────────────── -->
     <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
 
     <script src="script.js"></script>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aurascript-v2';
+const CACHE_NAME = 'aurascript-v3';
 const ASSETS = [
     '/AuraScript/',
     '/AuraScript/index.html',

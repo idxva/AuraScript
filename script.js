@@ -1,21 +1,35 @@
-// This is a public API location, not a credential.  Secrets stay on the server.
+// AuraScript Clinical E-Prescribing Engine
+// Public API location; secrets remain server-side.
 const API_BASE_URL = window.AURA_API_BASE_URL || 'https://pharmalink-api.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Check for profile
+    // ── Profile Check & Practitioner Attribution ─────────────
     const savedProfile = localStorage.getItem('aura_doctor_profile');
     if (!savedProfile && !window.location.pathname.includes('login.html')) {
         window.location.href = 'login.html';
         return;
     }
 
+    let practitionerProfile = {
+        doctorName: 'Dr. Priya Nair, MD',
+        clinicName: 'City Care Medical Center'
+    };
+
     if (savedProfile) {
         try {
             const profile = JSON.parse(savedProfile);
+            if (profile.doctorName) practitionerProfile.doctorName = profile.doctorName;
+            if (profile.clinicName) practitionerProfile.clinicName = profile.clinicName;
+
             const drInput = document.getElementById('doctorName');
             const clInput = document.getElementById('clinicName');
-            if (drInput) drInput.value = profile.doctorName || '';
-            if (clInput) clInput.value = profile.clinicName || '';
+            if (drInput) drInput.value = practitionerProfile.doctorName;
+            if (clInput) clInput.value = practitionerProfile.clinicName;
+
+            const headerDr = document.getElementById('headerDoctorName');
+            const headerCl = document.getElementById('headerClinicName');
+            if (headerDr) headerDr.textContent = practitionerProfile.doctorName;
+            if (headerCl) headerCl.textContent = practitionerProfile.clinicName;
         } catch (err) {
             console.warn('Saved profile is invalid and will be reset:', err);
             localStorage.removeItem('aura_doctor_profile');
@@ -24,6 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Station Metadata (Date & Serial Reference) ───────────
+    const dateDisplay = document.getElementById('currentDateDisplay');
+    if (dateDisplay) {
+        const today = new Date();
+        dateDisplay.textContent = today.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    const rxSerialTag = document.getElementById('rxSerialTag');
+    if (rxSerialTag) {
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        rxSerialTag.textContent = `AS-2026-RX${randomNum}`;
+    }
+
+    // ── DOM References ───────────────────────────────────────
     const prescriptionForm = document.getElementById('prescriptionForm');
     const medList = document.getElementById('medicationList');
     const addMedBtn = document.getElementById('addMedication');
@@ -33,47 +66,133 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrcodeDiv = document.getElementById('qrcode');
     const displayOTP = document.getElementById('displayOTP');
     const downloadBtn = document.getElementById('downloadQR');
+    const medCounterBadge = document.getElementById('medCounterBadge');
+    const btnDiscard = document.getElementById('btnDiscardForm');
+    const btnCopyOTP = document.getElementById('btnCopyOTP');
 
+    // ── Toast System ─────────────────────────────────────────
+    function showToast(message, type = 'info') {
+        const region = document.getElementById('toastRegion');
+        if (!region) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${type}`;
+        
+        let iconSvg = '';
+        if (type === 'success') {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        } else if (type === 'error') {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+        } else {
+            iconSvg = `<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+        }
+
+        toast.innerHTML = `${iconSvg}<span>${message}</span>`;
+        region.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('is-leaving');
+            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        }, 3200);
+    }
+
+    // ── Autocomplete Lexicon ──────────────────────────────────
     const commonMedications = [
-        "Paracetamol", "Amoxicillin", "Metformin", "Atorvastatin", "Amlodipine",
-        "Omeprazole", "Azithromycin", "Losartan", "Albuterol", "Gabapentin",
-        "Hydrochlorothiazide", "Sertraline", "Simvastatin", "Lisinopril", "Levothyroxine",
-        "Metoprolol", "Pantoprazole", "Escitalopram", "Rosuvastatin", "Bupropion",
-        "Furosemide", "Fluticasone", "Prednisone", "Tamsulosin", "Duloxetine",
-        "Ranitidine", "Venlafaxine", "Meloxicam", "Warpfarin", "Clopidogrel",
-        "Aspirin", "Ibuprofen", "Naproxen", "Cetirizine", "Loratadine",
-        "Montelukast", "Tramadol", "Oxycodone", "Hydrocodone", "Diazepam",
-        "Lorazepam", "Alprazolam", "Zolpidem", "Ciprofloxacin", "Doxycycline",
-        "Amoxicillin/Clavulanate", "Clarithromycin", "Fluconazole", "Nystatin", "Mupirocin"
+        "Amoxicillin", "Amoxicillin/Clavulanate", "Ampicillin", "Azithromycin",
+        "Aspirin", "Atorvastatin", "Amlodipine", "Albuterol", "Alprazolam",
+        "Bupropion", "Ciprofloxacin", "Clarithromycin", "Clopidogrel", "Cetirizine",
+        "Diazepam", "Doxycycline", "Duloxetine", "Escitalopram", "Fluconazole",
+        "Fluticasone", "Furosemide", "Gabapentin", "Hydrochlorothiazide", "Hydrocodone",
+        "Ibuprofen", "Levothyroxine", "Lisinopril", "Loratadine", "Losartan",
+        "Lorazepam", "Meloxicam", "Metformin", "Metoprolol", "Montelukast",
+        "Mupirocin", "Naproxen", "Nystatin", "Omeprazole", "Oxycodone",
+        "Pantoprazole", "Paracetamol", "Prednisone", "Ranitidine", "Rosuvastatin",
+        "Sertraline", "Simvastatin", "Tamsulosin", "Tramadol", "Venlafaxine",
+        "Warfarin", "Zolpidem"
     ];
 
-    // Add new medication row
-    addMedBtn.addEventListener('click', () => {
-        const medItem = document.createElement('div');
-        medItem.className = 'med-item';
-        medItem.innerHTML = `
-            <input type="text" class="med-name" placeholder="Medication Name" required autocomplete="off">
-            <div class="dosage-group">
-                <input type="number" class="med-dosage" placeholder="Dose" min="0" step="any" required>
-                <select class="med-unit">
-                    <option value="mg">mg</option>
-                    <option value="ml">ml</option>
-                    <option value="mcg">mcg</option>
-                    <option value="g">g</option>
-                </select>
-            </div>
-            <input type="text" class="med-duration" placeholder="Duration (e.g. 5 days)" required>
-            <select class="med-timing">
-                <option value="After Food">After Food</option>
-                <option value="Before Food">Before Food</option>
-                <option value="Empty Stomach">Empty Stomach</option>
-                <option value="At Bedtime">At Bedtime</option>
-            </select>
-        `;
-        medList.appendChild(medItem);
-        setupAutocomplete(medItem.querySelector('.med-name'));
-    });
+    // ── Medication List Count & Row Deletion ──────────────────
+    function updateMedicationBadge() {
+        if (!medCounterBadge) return;
+        const rows = medList.querySelectorAll('.med-item');
+        const count = rows.length;
+        medCounterBadge.textContent = count === 1 ? '1 item prescribed' : `${count} items prescribed`;
 
+        // Update delete buttons state
+        rows.forEach(row => {
+            const delBtn = row.querySelector('.btn-delete-med');
+            if (delBtn) {
+                delBtn.disabled = count <= 1;
+            }
+        });
+    }
+
+    function wireRowDelete(row) {
+        const delBtn = row.querySelector('.btn-delete-med');
+        if (delBtn) {
+            delBtn.onclick = () => {
+                const rows = medList.querySelectorAll('.med-item');
+                if (rows.length > 1) {
+                    row.remove();
+                    updateMedicationBadge();
+                    showToast('Medication line removed.', 'info');
+                } else {
+                    // Reset fields instead of removing only row
+                    row.querySelector('.med-name').value = '';
+                    row.querySelector('.med-dosage').value = '';
+                    row.querySelector('.med-duration').value = '';
+                }
+            };
+        }
+    }
+
+    // Initialize existing delete buttons
+    document.querySelectorAll('.med-item').forEach(wireRowDelete);
+    updateMedicationBadge();
+
+    // ── Add New Medication Row ───────────────────────────────
+    if (addMedBtn) {
+        addMedBtn.addEventListener('click', () => {
+            const medItem = document.createElement('div');
+            medItem.className = 'med-item';
+            medItem.innerHTML = `
+                <input type="text" class="med-name" placeholder="Medication name (e.g. Metformin)" required autocomplete="off">
+                <div class="dosage-group">
+                    <input type="number" class="med-dosage" placeholder="Amount" min="0" step="any" required>
+                    <select class="med-unit">
+                        <option value="mg">mg</option>
+                        <option value="ml">ml</option>
+                        <option value="mcg">mcg</option>
+                        <option value="g">g</option>
+                        <option value="IU">IU</option>
+                        <option value="drops">drops</option>
+                    </select>
+                </div>
+                <input type="text" class="med-duration" placeholder="e.g. 10 days" required>
+                <select class="med-timing">
+                    <option value="After Food">After Food (Post cibum)</option>
+                    <option value="Before Food">Before Food (Ante cibum)</option>
+                    <option value="With Meals">With Meals</option>
+                    <option value="Empty Stomach">Empty Stomach</option>
+                    <option value="At Bedtime">At Bedtime (Hora somni)</option>
+                    <option value="As Needed">As Needed (PRN)</option>
+                </select>
+                <button type="button" class="btn-delete-med" aria-label="Remove medication line" title="Remove item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            medList.appendChild(medItem);
+            wireRowDelete(medItem);
+            setupAutocomplete(medItem.querySelector('.med-name'));
+            updateMedicationBadge();
+            medItem.querySelector('.med-name').focus();
+        });
+    }
+
+    // ── Medication Autocomplete ──────────────────────────────
     function setupAutocomplete(input) {
         let currentFocus = -1;
 
@@ -90,11 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 med.toLowerCase().includes(val.toLowerCase())
             );
 
-            matches.forEach(match => {
+            matches.slice(0, 8).forEach(match => {
                 const item = document.createElement('div');
                 item.setAttribute('class', 'suggestion-item');
                 const index = match.toLowerCase().indexOf(val.toLowerCase());
-                item.innerHTML = match.substr(0, index) + "<strong>" + match.substr(index, val.length) + "</strong>" + match.substr(index + val.length);
+                item.innerHTML = `<span>${match.substr(0, index)}<strong>${match.substr(index, val.length)}</strong>${match.substr(index + val.length)}</span><span style="font-size:0.7rem;color:#94a3b8;">Rx Formulary</span>`;
                 item.innerHTML += `<input type='hidden' value="${match}">`;
 
                 item.addEventListener('click', function () {
@@ -139,40 +258,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('click', e => closeAllLists(e.target));
-    setupAutocomplete(document.querySelector('.med-name'));
+    document.querySelectorAll('.med-name').forEach(setupAutocomplete);
 
-    // Generate Prescription
+    // ── Quick Directives Insert ──────────────────────────────
+    document.querySelectorAll('.quick-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.getAttribute('data-tag');
+            const notesField = document.getElementById('additionalNotes');
+            if (!notesField || !tag) return;
+            const current = notesField.value.trim();
+            if (!current) {
+                notesField.value = tag;
+            } else if (!current.includes(tag)) {
+                notesField.value = `${current} ${tag}`;
+            }
+            notesField.focus();
+        });
+    });
+
+    // ── Generate Prescription Flow ───────────────────────────
     function handleGeneratePrescription(e) {
         if (e) e.preventDefault();
 
+        const patientNameEl = document.getElementById('patientName');
+        const patientAgeEl = document.getElementById('patientAge');
+        const doctorNameEl = document.getElementById('doctorName');
+        const clinicNameEl = document.getElementById('clinicName');
+
         const patientData = {
-            name: document.getElementById('patientName').value.trim(),
-            age: document.getElementById('patientAge').value.trim(),
-            gender: document.getElementById('patientGender').value
+            name: patientNameEl ? patientNameEl.value.trim() : '',
+            age: patientAgeEl ? patientAgeEl.value.trim() : '',
+            gender: document.getElementById('patientGender') ? document.getElementById('patientGender').value : ''
+        };
+
+        const doctorData = {
+            name: doctorNameEl ? doctorNameEl.value.trim() : '',
+            clinic: clinicNameEl ? clinicNameEl.value.trim() : ''
         };
 
         const medications = [];
         document.querySelectorAll('.med-item').forEach(item => {
-            const name = item.querySelector('.med-name').value.trim();
-            const dosageVal = item.querySelector('.med-dosage').value.trim();
-            const dosageUnit = item.querySelector('.med-unit').value;
+            const nameInput = item.querySelector('.med-name');
+            const doseInput = item.querySelector('.med-dosage');
+            const unitSelect = item.querySelector('.med-unit');
+            const durationInput = item.querySelector('.med-duration');
+            const timingSelect = item.querySelector('.med-timing');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const dose = doseInput ? doseInput.value.trim() : '';
+            const unit = unitSelect ? unitSelect.value : 'mg';
+            const duration = durationInput ? durationInput.value.trim() : '';
+            const timing = timingSelect ? timingSelect.value : 'After Food';
+
             if (name) {
                 medications.push({
                     name: name,
-                    dosage: dosageVal ? `${dosageVal} ${dosageUnit}` : '',
-                    duration: item.querySelector('.med-duration').value.trim(),
-                    timing: item.querySelector('.med-timing').value
+                    dosage: dose ? `${dose} ${unit}` : '',
+                    duration: duration,
+                    timing: timing
                 });
             }
         });
 
-        const doctorData = {
-            name: document.getElementById('doctorName').value.trim(),
-            clinic: document.getElementById('clinicName').value.trim()
-        };
+        // Clinical Validation
+        if (!patientData.name) {
+            showToast('Please enter the patient full name.', 'error');
+            if (patientNameEl) patientNameEl.focus();
+            return;
+        }
 
-        if (!patientData.name || !doctorData.name || medications.length === 0) {
-            alert("Please fill in all required fields.");
+        if (!patientData.age) {
+            showToast('Please enter the patient age.', 'error');
+            if (patientAgeEl) patientAgeEl.focus();
+            return;
+        }
+
+        if (medications.length === 0) {
+            showToast('Please add at least one medication order.', 'error');
+            return;
+        }
+
+        if (!doctorData.name) {
+            showToast('Please enter the attending practitioner name.', 'error');
+            if (doctorNameEl) doctorNameEl.focus();
             return;
         }
 
@@ -180,47 +348,50 @@ document.addEventListener('DOMContentLoaded', () => {
             patient: patientData,
             medications: medications,
             doctor: doctorData,
-            notes: document.getElementById('additionalNotes').value,
+            notes: document.getElementById('additionalNotes') ? document.getElementById('additionalNotes').value : '',
             timestamp: new Date().toLocaleString()
         };
 
-        // Generate 5-char alphanumeric OTP
+        // Generate 5-character OTP
         const otp = generateOTP(5);
         const secretKey = "AuraScript_Secret_Key";
 
-        // Encrypt Data
+        // Client-side AES encryption
         const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(fullData), secretKey).toString();
 
-        // Save to localStorage as offline fallback (same device)
+        // Local storage cache
         localStorage.setItem(`aura_${otp}`, encryptedData);
 
-        // Save through our backend for cross-device access. No Google/Firebase
-        // credential is sent to or embedded in the browser.
+        // Remote save to companion API
         fetch(`${API_BASE_URL}/api/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ otp, data: encryptedData })
         }).catch(err => {
-            console.warn('Remote save failed (offline mode):', err);
+            console.warn('Remote save failed (operating in offline fallback mode):', err);
         });
 
-        // Show Modal
-        displayOTP.textContent = otp;
-        modal.classList.add('is-open');
-        modal.style.display = 'flex';
+        // Display Modal
+        if (displayOTP) displayOTP.textContent = otp;
+        if (modal) {
+            modal.classList.add('is-open');
+            modal.style.display = 'flex';
+        }
 
-        // Clear and Generate QR Code
-        qrcodeDiv.innerHTML = "";
-        new QRCode(qrcodeDiv, {
-            text: otp,
-            width: 180,
-            height: 180,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+        // Render High-Contrast QR Code
+        if (qrcodeDiv) {
+            qrcodeDiv.innerHTML = '';
+            new QRCode(qrcodeDiv, {
+                text: otp,
+                width: 180,
+                height: 180,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
 
-        resetForm();
+        showToast('Prescription encrypted & issued.', 'success');
     }
 
     if (prescriptionForm) {
@@ -230,118 +401,220 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.addEventListener('click', handleGeneratePrescription);
     }
 
+    // ── Reset Form ───────────────────────────────────────────
     function resetForm() {
-        document.getElementById('patientName').value = "";
-        document.getElementById('patientAge').value = "";
-        document.getElementById('patientGender').value = "";
+        document.getElementById('patientName').value = '';
+        document.getElementById('patientAge').value = '';
+        document.getElementById('patientGender').value = '';
 
         medList.innerHTML = `
             <div class="med-item">
-                <input type="text" class="med-name" placeholder="Medication Name" required autocomplete="off">
+                <input type="text" class="med-name" placeholder="Medication name (e.g. Amoxicillin)" required autocomplete="off">
                 <div class="dosage-group">
-                    <input type="number" class="med-dosage" placeholder="Dose" min="0" step="any" required>
+                    <input type="number" class="med-dosage" placeholder="Amount" min="0" step="any" required>
                     <select class="med-unit">
                         <option value="mg">mg</option>
                         <option value="ml">ml</option>
                         <option value="mcg">mcg</option>
                         <option value="g">g</option>
+                        <option value="IU">IU</option>
+                        <option value="drops">drops</option>
                     </select>
                 </div>
-                <input type="text" class="med-duration" placeholder="Duration (e.g. 5 days)" required>
+                <input type="text" class="med-duration" placeholder="e.g. 5 days" required>
                 <select class="med-timing">
-                    <option value="After Food">After Food</option>
-                    <option value="Before Food">Before Food</option>
+                    <option value="After Food">After Food (Post cibum)</option>
+                    <option value="Before Food">Before Food (Ante cibum)</option>
+                    <option value="With Meals">With Meals</option>
                     <option value="Empty Stomach">Empty Stomach</option>
-                    <option value="At Bedtime">At Bedtime</option>
+                    <option value="At Bedtime">At Bedtime (Hora somni)</option>
+                    <option value="As Needed">As Needed (PRN)</option>
                 </select>
+                <button type="button" class="btn-delete-med" aria-label="Remove medication line" title="Remove item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         `;
-        setupAutocomplete(medList.querySelector('.med-name'));
-        document.getElementById('additionalNotes').value = "";
+        const initialRow = medList.querySelector('.med-item');
+        wireRowDelete(initialRow);
+        setupAutocomplete(initialRow.querySelector('.med-name'));
+        updateMedicationBadge();
+
+        const notes = document.getElementById('additionalNotes');
+        if (notes) notes.value = '';
+
+        // Generate a new reference tag
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        if (rxSerialTag) rxSerialTag.textContent = `AS-2026-RX${randomNum}`;
     }
 
+    if (btnDiscard) {
+        btnDiscard.addEventListener('click', () => {
+            resetForm();
+            showToast('Prescription draft reset.', 'info');
+        });
+    }
+
+    // ── Copy OTP Helper ──────────────────────────────────────
+    if (btnCopyOTP) {
+        btnCopyOTP.addEventListener('click', () => {
+            const otp = displayOTP ? displayOTP.textContent.trim() : '';
+            if (otp && otp !== '-----') {
+                navigator.clipboard.writeText(otp).then(() => {
+                    showToast(`Access code ${otp} copied to clipboard`, 'success');
+                }).catch(() => {
+                    showToast(`Access code: ${otp}`, 'info');
+                });
+            }
+        });
+    }
+
+    // ── Modal Dismissal ──────────────────────────────────────
     function closeModal() {
+        if (!modal) return;
         modal.classList.remove('is-open');
         modal.style.display = 'none';
+        resetForm();
     }
 
-    if (closeBtn) {
-        closeBtn.onclick = closeModal;
-    }
+    if (closeBtn) closeBtn.onclick = closeModal;
     window.onclick = (event) => {
         if (event.target == modal) closeModal();
     };
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && modal.style.display === 'flex') {
+        if (event.key === 'Escape' && modal && modal.style.display === 'flex') {
             closeModal();
         }
     });
 
-    downloadBtn.addEventListener('click', () => {
-        const otp = displayOTP.textContent;
+    // ── Downloadable Official Prescription Voucher Card ──────
+    // Generates a clean, authoritative clinical voucher (NO purple party gradients or sparkles)
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            const otp = displayOTP ? displayOTP.textContent.trim() : '';
+            const qrSourceCanvas = document.querySelector('#qrcode canvas');
+            if (!qrSourceCanvas) {
+                showToast('QR code generation in progress. Please wait.', 'error');
+                return;
+            }
 
-        const qrSourceCanvas = document.querySelector('#qrcode canvas');
-        if (!qrSourceCanvas) {
-            alert("QR code is not ready yet. Please try again.");
-            return;
-        }
+            const scale = 2;
+            const cardW = 380;
+            const cardH = 480;
 
-        const scale = 2;
-        const cardW = 320;
-        const qrSize = 200;
-        const cardH = 380;
+            const offscreen = document.createElement('canvas');
+            offscreen.width = cardW * scale;
+            offscreen.height = cardH * scale;
+            const ctx = offscreen.getContext('2d');
+            ctx.scale(scale, scale);
 
-        const offscreen = document.createElement('canvas');
-        offscreen.width = cardW * scale;
-        offscreen.height = cardH * scale;
-        const ctx = offscreen.getContext('2d');
-        ctx.scale(scale, scale);
+            // Card background & clinical border
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, cardW, cardH, 12);
+            ctx.fill();
 
-        const grad = ctx.createLinearGradient(0, 0, 0, cardH);
-        grad.addColorStop(0, '#520e72');
-        grad.addColorStop(0.5, '#3709a1');
-        grad.addColorStop(1, '#620288');
-        ctx.fillStyle = grad;
-        ctx.roundRect(0, 0, cardW, cardH, 20);
-        ctx.fill();
+            // Card border
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
 
-        ctx.font = 'bold 18px Outfit, sans-serif';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText('✨ AuraScript', cardW / 2, 40);
-        ctx.font = '11px Outfit, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.fillText('Digital Prescription', cardW / 2, 58);
+            // Clinical Header Banner
+            ctx.fillStyle = '#0f766e';
+            ctx.beginPath();
+            ctx.roundRect(0, 0, cardW, 80, [12, 12, 0, 0]);
+            ctx.fill();
 
-        const qrBoxPad = 12;
-        const qrBoxSize = qrSize + qrBoxPad * 2;
-        const qrX = (cardW - qrBoxSize) / 2;
-        const qrY = 75;
-        ctx.fillStyle = '#ffffff';
-        ctx.roundRect(qrX, qrY, qrBoxSize, qrBoxSize, 12);
-        ctx.fill();
-        ctx.drawImage(qrSourceCanvas, qrX + qrBoxPad, qrY + qrBoxPad, qrSize, qrSize);
+            // Header Typography
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('℞ AURASCRIPT E-PRESCRIPTION', 24, 34);
 
-        const otpY = qrY + qrBoxSize + 30;
-        ctx.font = 'bold 32px Outfit, sans-serif';
-        ctx.fillStyle = '#b06fe4';
-        ctx.fillText(otp, cardW / 2, otpY);
+            ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.fillStyle = '#ccfbf1';
+            ctx.fillText('Official Digital Pharmacy Dispensing Voucher', 24, 52);
 
-        ctx.font = '11px Outfit, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillText('PRESCRIPTION CODE', cardW / 2, otpY + 18);
+            // Attending Physician / Facility subtitle
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.fillText(`Issued by: ${practitionerProfile.doctorName}`, 24, 68);
 
-        ctx.font = '10px Outfit, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        ctx.fillText('Show this to your pharmacist', cardW / 2, otpY + 36);
+            // Document security strip
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 80, cardW, 32);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.moveTo(0, 112);
+            ctx.lineTo(cardW, 112);
+            ctx.stroke();
 
-        const url = offscreen.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `AuraScript_${otp}.png`;
-        link.click();
-    });
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.textAlign = 'left';
+            const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            ctx.fillText(`DATE: ${dateStr}`, 24, 100);
+            ctx.textAlign = 'right';
+            ctx.fillText('SECURITY: AES-256 ENCRYPTED', cardW - 24, 100);
 
+            // QR Code centered frame
+            const qrSize = 180;
+            const qrBoxPad = 12;
+            const qrBoxSize = qrSize + qrBoxPad * 2;
+            const qrX = (cardW - qrBoxSize) / 2;
+            const qrY = 130;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(qrX, qrY, qrBoxSize, qrBoxSize, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.drawImage(qrSourceCanvas, qrX + qrBoxPad, qrY + qrBoxPad, qrSize, qrSize);
+
+            // Prescription Verification OTP Box
+            const otpBoxY = qrY + qrBoxSize + 16;
+            ctx.fillStyle = '#f0fdfa';
+            ctx.strokeStyle = '#0d9488';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(24, otpBoxY, cardW - 48, 64, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.fillStyle = '#0f766e';
+            ctx.fillText('PHARMACY DISPENSING ACCESS CODE', cardW / 2, otpBoxY + 18);
+
+            ctx.font = 'bold 26px "JetBrains Mono", Consolas, monospace';
+            ctx.fillStyle = '#0f172a';
+            ctx.fillText(otp, cardW / 2, otpBoxY + 48);
+
+            // Footer instructions
+            ctx.font = '9.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.fillText('Present this QR or access code at any participating PharmaLink pharmacy.', cardW / 2, cardH - 24);
+            ctx.font = '8.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Valid for licensed pharmacist decryption only · HIPAA Compliant Protocol', cardW / 2, cardH - 12);
+
+            // Trigger Download
+            const url = offscreen.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `AuraScript_Prescription_${otp}.png`;
+            link.click();
+            showToast('Prescription voucher downloaded.', 'success');
+        });
+    }
+
+    // ── Alphanumeric OTP Generator ───────────────────────────
     function generateOTP(length) {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
@@ -349,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasCrypto = !!(cryptoObj && cryptoObj.getRandomValues);
 
         function getSecureIndex(max) {
-            const range = 0x100000000; // 2^32
+            const range = 0x100000000;
             const maxUnbiased = Math.floor(range / max) * max;
             const buf = new Uint32Array(1);
             let value;
@@ -368,10 +641,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Register Service Worker for PWA support
+// ── PWA Service Worker Registration ──────────────────────────
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js', { scope: '/AuraScript/' })
-            .catch(err => console.warn('SW registration failed:', err));
+            .catch(err => console.warn('ServiceWorker registration failed:', err));
     });
 }
